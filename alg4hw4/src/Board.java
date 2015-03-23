@@ -142,14 +142,10 @@ public class Board {
 	 */
 	public Board twin() {
 		int[][] twinArr;
-		if (blocks[0][0] != 0) {
-			if (blocks[0][1] != 0) {
-				twinArr = swap(0, 0, 0, 1);
-			} else {
-				twinArr = swap(0, 0, 0, 2);
-			}
+		if (blocks[0][0] != 0 && blocks[0][1] != 0) {
+			twinArr = swap(0, 0, 0, 1);
 		} else {
-			twinArr = swap(0, 1, 0, 2);
+			twinArr = swap(1, 0, 1, 1);
 		}
 		return new Board(twinArr);
 	}
