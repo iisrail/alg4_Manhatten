@@ -15,22 +15,22 @@ import java.util.List;
 public class Solver {
 	private Board initial;
 	private Board twin;
-//	private MinPQ<BoardWrapper> pq;
-//	private MinPQ<BoardWrapper> pqTwin;
 	private int moves = -1;
 	private List<BoardWrapper> boardsTracker;
+	private boolean isSolvable;
 
-	public final Comparator<BoardWrapper> MANHATTEN_ORDER = new Comparator<BoardWrapper>() {
+	private final Comparator<BoardWrapper> MANHATTEN_ORDER = new Comparator<BoardWrapper>() {
 
 		@Override
 		public int compare(final BoardWrapper o1, final BoardWrapper o2) {
-			int priorManh1 = o1.manhatten*2 + o1.moves;
-			int priorManh2 = o2.manhatten*2 + o2.moves;
+			double priorManh1 = o1.manhatten*1.1  + o1.moves;
+			double priorManh2 = o2.manhatten*1.1  + o2.moves;
 			if (priorManh1 < priorManh2) {
 				return -1;
 			} else if (priorManh1 > priorManh2) {
 				return 1;
 			} else {
+
 				return 0;
 			}
 		}
@@ -46,9 +46,7 @@ public class Solver {
 			throw new NullPointerException();
 		this.initial = initial;
 		this.twin = initial.twin();
-		//this.pq = new MinPQ<BoardWrapper>(MANHATTEN_ORDER);
-		//this.boardsTracker = new ArrayList<BoardWrapper>();
-		//innerSolution();
+		innerSolution();
 	}
 
 	/**
@@ -57,8 +55,8 @@ public class Solver {
 	 * @return
 	 */
 	public boolean isSolvable() {
-		return innerSolution();
-		
+		return isSolvable;
+
 	}
 
 	/**
@@ -76,10 +74,12 @@ public class Solver {
 	 * @return
 	 */
 	public Iterable<Board> solution() {
-		Stack<Board> boards = new Stack<>();
-		int index = boardsTracker.size()-1;
+		if(!isSolvable) return null;
 		
-		while(index != -1){
+		Stack<Board> boards = new Stack<>();
+		int index = boardsTracker.size() - 1;
+
+		while (index != -1) {
 			BoardWrapper curBoardWrapper = boardsTracker.get(index);
 			boards.push(curBoardWrapper.board);
 			index = curBoardWrapper.parentIndex;
@@ -87,7 +87,7 @@ public class Solver {
 		return boards;
 	}
 
-	private boolean innerSolution() {
+	private void innerSolution() {
 		int moves = 0;
 		List<BoardWrapper> boardsTracker = new ArrayList<>();
 		MinPQ<BoardWrapper> pq = new MinPQ<BoardWrapper>(MANHATTEN_ORDER);
@@ -100,12 +100,12 @@ public class Solver {
 		int movesTwin = 0;
 		List<BoardWrapper> boardsTwinTracker = new ArrayList<>();
 		MinPQ<BoardWrapper> pqTwin = new MinPQ<BoardWrapper>(MANHATTEN_ORDER);
-		BoardWrapper curBoardTwin = new BoardWrapper(twin, moves, -1);		
+		BoardWrapper curBoardTwin = new BoardWrapper(twin, moves, -1);
 		curBoardTwin.index = 0;
 		pqTwin.insert(curBoardTwin);
-		boardsTwinTracker.add(curBoardTwin);	
+		boardsTwinTracker.add(curBoardTwin);
 		int trackerTwinIndex = 1;
-		boolean isSolvable = false;
+		
 		while (true) {
 			// getting new curBoard
 			curBoard = pq.delMin();
@@ -113,7 +113,7 @@ public class Solver {
 				boardsTracker.add(curBoard);
 				isSolvable = true;
 				break;
-			}			
+			}
 			// avoid putting initial board twice
 			if (initial != curBoard.board) {
 				curBoard.index = trackerIndex;
@@ -131,20 +131,20 @@ public class Solver {
 					pq.insert(new BoardWrapper(board, moves, curBoard.index));
 				}
 			}
-			
-			///////////////////////////// solution for twin ///////////////////////////////////////////////
-			
+
+			// solution for twin /////////////////////////////////////
+
 			// getting new curBoardTwin
 			curBoardTwin = pqTwin.delMin();
 			if (curBoardTwin.board.isGoal()) {
 				boardsTwinTracker.add(curBoardTwin);
-				//isSolvable = false;
+				// isSolvable = false;
 				break;
-			}			
+			}
 			// avoid putting initial board twice
 			if (twin != curBoardTwin.board) {
 				curBoardTwin.index = trackerTwinIndex;
-				boardsTwinTracker.add(curBoardTwin);				
+				boardsTwinTracker.add(curBoardTwin);
 				trackerTwinIndex++;
 			}
 			// adding
@@ -157,47 +157,15 @@ public class Solver {
 				if (!board.equals(prevBoardTwin)) {
 					pqTwin.insert(new BoardWrapper(board, movesTwin, curBoardTwin.index));
 				}
-			}			
-			
+			}
 
 		}// end while
-		if(isSolvable){
+		if (isSolvable) {
 			this.moves = curBoard.moves;
 			this.boardsTracker = boardsTracker;
 		}
-		return isSolvable;
+		
 	}
-	
-/*	private boolean innerSolutionForInitial(int trackerIndex){
-		// getting new curBoard
-		BoardWrapper curBoard = pq.delMin();
-		if (curBoard.board.isGoal()) {
-			boardsTracker.add(curBoard);
-			return true;
-		}			
-		// avoid putting initial board twice
-		if (initial != curBoard.board) {
-			curBoard.index = trackerIndex;
-			boardsTracker.add(curBoard);
-			trackerIndex++;
-		}
-		// adding
-		moves = curBoard.moves;
-		moves++;
-		int parentIndex = curBoard.parentIndex;
-		Board prevBoard = parentIndex != -1 ? boardsTracker.get(parentIndex).board : null;
-		Iterable<Board> neighbors = curBoard.board.neighbors();
-		for (Board board : neighbors) {
-			if (!board.equals(prevBoard)) {
-				pq.insert(new BoardWrapper(board, moves, curBoard.index));
-			}
-		}		
-		return false;
-	}*/
-	
-//	private boolean innerSolutionForTwin(){
-//		return true;
-//	}	
 
 	private class BoardWrapper {
 		private int index;

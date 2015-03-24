@@ -1,6 +1,5 @@
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -14,9 +13,17 @@ import java.util.List;
  *
  */
 public class Board {
-	private int N;
-	private int[][] blocks;
-	private int[][] goalBlocks;
+	private static final int[][][] arrGoalBlocks;
+	private final int N;
+	private final int[][] blocks;
+
+
+	static {
+		arrGoalBlocks = new int[120][][];
+		for (int i = 2; i < 120; i++) {
+			arrGoalBlocks[i] = initGoalBoard(i);
+		}
+	}
 
 	/**
 	 * construct a board from an N-by-N array of blocks (where blocks[i][j] =
@@ -24,12 +31,9 @@ public class Board {
 	 * 
 	 * @param blocks
 	 */
-	public Board(int[][] blocks) {
-		this.blocks = blocks;
-		this.N = blocks.length;
-		// build goal
-		goalBlocks = initGoalBoard(N);
-
+	public Board(final int[][] blocks) {
+		N = blocks.length;
+		this.blocks = Arrays.copyOf(blocks, N);
 	}
 
 	/**
@@ -52,7 +56,7 @@ public class Board {
 			for (int j = 0; j < N; j++) {
 				if (blocks[i][j] == 0)
 					continue;
-				if (blocks[i][j] != goalBlocks[i][j]) {
+				if (blocks[i][j] != arrGoalBlocks[N][i][j]) {
 					priority++;
 				}
 			}
@@ -67,11 +71,11 @@ public class Board {
 	 */
 	public int manhattan() {
 		int priority = 0;
-
+		int[][] newBlocks = copyBlocks();
 		for (int i = 0; i < N; i++) {
 			for (int j = 0; j < N; j++) {
 
-				int val = blocks[i][j];
+				int val = newBlocks[i][j];
 				if (val == 0)
 					continue;
 				// find val into goal blocks array
@@ -88,7 +92,7 @@ public class Board {
 
 		for (int i = 0; i < N; i++) {
 			for (int j = 0; j < N; j++) {
-				if (goalBlocks[i][j] == val) {
+				if (arrGoalBlocks[N][i][j] == val) {
 					retCoord[0] = i;
 					retCoord[1] = j;
 					break;
@@ -126,7 +130,7 @@ public class Board {
 	public boolean isGoal() {
 		for (int i = 0; i < N; i++) {
 			for (int j = 0; j < N; j++) {
-				if (goalBlocks[i][j] != blocks[i][j]) {
+				if (arrGoalBlocks[N][i][j] != blocks[i][j]) {
 					return false;
 				}
 			}
@@ -161,6 +165,9 @@ public class Board {
 			return false;
 		}
 		Board yBoard = (Board) y;
+		if (dimension() != yBoard.dimension()) {
+			return false;
+		}
 		int[][] yBlocks = yBoard.getBlocks();
 		for (int i = 0; i < N; i++) {
 			for (int j = 0; j < N; j++) {
@@ -248,7 +255,7 @@ public class Board {
 		return g;
 	}
 
-	public int[][] getBlocks() {
+	private int[][] getBlocks() {
 		return blocks;
 	}
 
